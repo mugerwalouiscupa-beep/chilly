@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHILLY | Connect. Share. Enjoy.</title>
+<meta name="description" content="CHILLY is a community to share moments, meet friends and enjoy games.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial,sans-serif}
+header{background:#172554;color:white;padding:18px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:28px;font-weight:bold;color:#67e8f9}
+header p{margin:4px 0 0;font-size:12px}
+main{max-width:720px;margin:22px auto;padding:0 13px}
+.card{background:white;padding:19px;border-radius:14px;margin-bottom:16px;box-shadow:0 2px 10px #0000000b}
+h2{margin-top:0}
+input,textarea{display:block;width:100%;padding:13px;margin:9px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+button{padding:12px 15px;margin:4px 2px;border:0;border-radius:8px;background:#0891b2;color:white;font-weight:bold;font-size:14px}
+.alt{background:#e2e8f0;color:#172033}
+nav{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:15px}
+nav button{flex:1;min-width:75px}
+.muted{color:#64748b;font-size:14px;line-height:1.5}
+.status{padding:11px;background:#ecfeff;border-radius:8px;overflow-wrap:anywhere}
+.hidden{display:none!important}
+.post{border-bottom:1px solid #e2e8f0;padding:12px 0}
+footer{text-align:center;padding:25px;color:#64748b;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+ <div><div class="logo">CHILLY</div><p>Connect. Share. Enjoy.</p></div>
+ <button id="logout" class="alt hidden">Log out</button>
+</header>
+
+<main>
+ <section class="card">
+  <h2>Welcome to CHILLY 👋</h2>
+  <p>Meet friends, share your moments and discover your community.</p>
+  <div id="status" class="status">Welcome! You are visiting as a guest.</div>
+ </section>
+
+ <section class="card" id="account">
+  <h2 id="formTitle">Create your account</h2>
+  <p class="muted">Use your email address to register or log in.</p>
+  <form id="authForm">
+   <input id="email" type="email" placeholder="Email address" autocomplete="email" required>
+   <input id="password" type="password" placeholder="Password (at least 6 characters)" minlength="6" required>
+   <button id="submit" type="submit">Sign up</button>
+   <button id="switch" class="alt" type="button">Already registered? Log in</button>
+  </form>
+  <button id="forgot" class="alt" type="button">Forgot password?</button>
+  <p id="authMessage" class="muted" aria-live="polite"></p>
+ </section>
+
+ <section class="card hidden" id="profile">
+  <h2>Your account</h2>
+  <p id="userEmail"></p>
+  <p class="muted">Your CHILLY account ID:</p>
+  <p id="userId" style="overflow-wrap:anywhere"></p>
+ </section>
+
+ <nav>
+  <button onclick="section('feed')">Home</button>
+  <button onclick="section('rooms')">Rooms</button>
+  <button onclick="section('games')">Games</button>
+  <button onclick="section('messages')">Messages</button>
+ </nav>
+
+ <section class="card" id="feed">
+  <h2>Home Feed 🏠</h2>
+  <p class="muted">Share your thoughts with the CHILLY community.</p>
+  <textarea id="postText" rows="3" placeholder="What would you like to share?"></textarea>
+  <button id="postButton">Create post</button>
+  <p id="postMessage" class="muted">Saving posts will be connected in the next setup step.</p>
+  <div class="post"><strong>Welcome to CHILLY!</strong><p class="muted">Connect. Share. Enjoy.</p></div>
+ </section>
+
+ <section class="card hidden" id="rooms">
+  <h2>Community Rooms 🎙️</h2>
+  <p>Public rooms, private rooms, music, conversations and new friends.</p>
+  <p class="muted">Live audio and video will be added after the accounts are working.</p>
+ </section>
+
+ <section class="card hidden" id="games">
+  <h2>CHILLY Games 🎮</h2>
+  <p>Ludo · Draft · Pool · Racing · Football · Cards</p>
+  <p class="muted">Online multiplayer and paid matches are not active yet. Payment and game rules must be set up and tested before real-money matches begin.</p>
+ </section>
+
+ <section class="card hidden" id="messages">
+  <h2>Messages 💬</h2>
+  <p class="muted">Private messaging will be added in a later step.</p>
+ </section>
+</main>
+<footer>CHILLY © 2026 · Connect. Share. Enjoy.</footer>
+
+<script>
+const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+let db = null;
+let loginMode = false;
+let activeUser = null;
+let authListener = null;
+
+const authMessage = document.getElementById("authMessage");
+const account = document.getElementById("account");
+
+if (SUPABASE_URL.startsWith("https://") &&
+    !SUPABASE_KEY.includes("PASTE_")) {
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  startApp();
+} else {
+  authMessage.textContent =
+    "Setup needed: add your Supabase project URL and publishable key in the code.";
+}
+
+async function startApp() {
+  const {data, error} = await db.auth.getSession();
+  if (error) authMessage.textContent = error.message;
+  activeUser = data.session ? data.session.user : null;
+  updateAccount();
+
+  if (authListener) authListener.subscription.unsubscribe();
+  const result = db.auth.onAuthStateChange((_event, session) => {
+    activeUser = session ? session.user : null;
+    updateAccount();
+  });
+  authListener = result.data.subscription;
+}
+
+function updateAccount() {
+  const signedIn = !!activeUser;
+  document.getElementById("status").textContent = signedIn
+    ? "You are logged in to CHILLY."
+    : "Welcome! You are visiting as a guest.";
+  account.classList.toggle("hidden", signedIn);
+  document.getElementById("profile").classList.toggle("hidden", !signedIn);
+  document.getElementById("logout").classList.toggle("hidden", !signedIn);
+
+  if (signedIn) {
+    document.getElementById("userEmail").textContent =
+      "Email: " + activeUser.email;
+    document.getElementById("userId").textContent = activeUser.id;
+  }
+}
+
+document.getElementById("switch").onclick = () => {
+  loginMode = !loginMode;
+  document.getElementById("formTitle").textContent =
+    loginMode ? "Log in to CHILLY" : "Create your account";
+  document.getElementById("submit").textContent =
+    loginMode ? "Log in" : "Sign up";
+  document.getElementById("switch").textContent =
+    loginMode ? "New here? Create an account" : "Already registered? Log in";
+  document.getElementById("password").autocomplete =
+    loginMode ? "current-password" : "new-password";
+  authMessage.textContent = "";
+};
+
+document.getElementById("authForm").onsubmit = async (event) => {
+  event.preventDefault();
+  if (!db) {
+    authMessage.textContent = "Please configure the Supabase keys first.";
+    return;
+  }
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const button = document.getElementById("submit");
+  button.disabled = true;
+  authMessage.textContent = "Please wait...";
+
+  try {
+    if (loginMode) {
+      const {error} = await db.auth.signInWithPassword({email, password});
+      if (error) throw error;
+      authMessage.textContent = "Login successful.";
+    } else {
+      const {data, error} = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.href.split("#")[0]
+        }
+      });
+      if (error) throw error;
+      authMessage.textContent = data.session
+        ? "Your account has been created."
+        : "Registration received. Check your email and confirm your address before logging in.";
+    }
+  } catch (error) {
+    authMessage.textContent = error.message || "Please try again.";
+  } finally {
+    button.disabled = false;
+  }
+};
+
+document.getElementById("forgot").onclick = async () => {
+  if (!db) {
+    authMessage.textContent = "Configure the Supabase keys first.";
+    return;
+  }
+  const email = document.getElementById("email").value.trim();
+  if (!email) {
+    authMessage.textContent = "Enter your email address first.";
+    return;
+  }
+  authMessage.textContent = "Sending reset email...";
+  const {error} = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href.split("#")[0]
+  });
+  authMessage.textContent = error
+    ? error.message
+    : "If the address is registered, a password reset email will be sent.";
+};
+
+document.getElementById("logout").onclick = async () => {
+  if (!db) return;
+  const {error} = await db.auth.signOut();
+  authMessage.textContent = error ? error.message : "You have logged out.";
+};
+
+document.getElementById("postButton").onclick = () => {
+  const text = document.getElementById("postText").value.trim();
+  const result = document.getElementById("postMessage");
+  if (!text) {
+    result.textContent = "Please write something first.";
+  } else if (!activeUser) {
+    result.textContent = "Please register or log in first.";
+  } else {
+    result.textContent =
+      "Your account is working. We will connect post saving next.";
+  }
+};
+
+function section(name) {
+  ["feed","rooms","games","messages"].forEach(id => {
+    document.getElementById(id).classList.toggle("hidden", id !== name);
+  });
+}
+</script>
+</body>
+</html>
