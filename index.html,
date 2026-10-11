@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHILLY - Connect, Share, Enjoy</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172554}
+header{background:#172554;color:white;padding:22px;text-align:center}
+header h1{margin:0;color:#67e8f9;font-size:36px}
+main{max-width:650px;margin:20px auto;padding:12px}
+.card{background:white;padding:20px;margin-bottom:16px;border-radius:12px}
+button{background:#0891b2;color:white;border:0;border-radius:7px;padding:12px;margin:4px;cursor:pointer}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;margin:7px 0;border:1px solid #cbd5e1;border-radius:7px}
+nav{display:flex;flex-wrap:wrap;justify-content:center}
+.muted{color:#64748b;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+<h1>CHILLY</h1>
+<p>Connect. Share. Enjoy.</p>
+</header>
+<main>
+<section class="card">
+<h2>Welcome to CHILLY 👋</h2>
+<p>Meet friends, share your moments and enjoy our community.</p>
+</section>
+<section class="card">
+<h2>Create an account</h2>
+<p class="muted">Email registration and login will be connected to Supabase next.</p>
+<input type="email" placeholder="Your email address">
+<input type="password" placeholder="Create a password">
+<button type="button" onclick="alert('We will activate registration after connecting Supabase.')">Sign up</button>
+<button type="button" onclick="alert('We will activate login after connecting Supabase.')">Log in</button>
+<button type="button" onclick="alert('Password reset will be connected next.')">Forgot password?</button>
+</section>
+<nav>
+<button onclick="show('feed')">Home</button>
+<button onclick="show('rooms')">Rooms</button>
+<button onclick="show('games')">Games</button>
+<button onclick="show('messages')">Messages</button>
+</nav>
+<section class="card" id="feed">
+<h2>Home Feed 🏠</h2>
+<textarea placeholder="What would you like to share?"></textarea>
+<button onclick="alert('Post saving will be connected to the database next.')">Create post</button>
+<p class="muted">Share your thoughts and connect with friends.</p>
+</section>
+<section class="card" id="rooms" hidden>
+<h2>Community Rooms 🎙️</h2>
+<p>Public and private rooms, music and conversations.</p>
+<p class="muted">Live rooms will be added in a later step.</p>
+</section>
+<section class="card" id="games" hidden>
+<h2>Games 🎮</h2>
+<p>Ludo · Draft · Pool · Racing · Football · Cards</p>
+<p class="muted">Multiplayer games and paid matches will be built and tested separately.</p>
+</section>
+<section class="card" id="messages" hidden>
+<h2>Messages 💬</h2>
+<p>Private messaging will be added in a later step.</p>
+</section>
+</main>
+<footer style="text-align:center;padding:20px">CHILLY © 2026</footer>
+<script>
+function show(id){
+['feed','rooms','games','messages'].forEach(function(name){
+document.getElementById(name).hidden = name !== id;
+});
+}
+</script>
+</body>
+</html>
