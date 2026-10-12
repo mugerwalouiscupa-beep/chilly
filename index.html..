@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHILLY — Connect, Share, Enjoy</title>
+<meta name="description" content="Join CHILLY to meet friends, create rooms and enjoy community games.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#172554;font-family:Arial,sans-serif}
+header{background:#172554;color:white;text-align:center;padding:20px}
+header h1{color:#67e8f9;margin:0;font-size:36px}
+main{max-width:760px;margin:18px auto;padding:12px}
+.card{background:white;padding:18px;border-radius:14px;margin-bottom:15px;box-shadow:0 2px 9px #0001}
+input,textarea,select{width:100%;padding:12px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+button{background:#0891b2;color:white;border:0;border-radius:8px;padding:12px;margin:4px 2px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+nav{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:15px}
+nav button{flex:1}
+.hidden{display:none!important}
+.muted{color:#64748b;font-size:14px;line-height:1.5}
+.notice{background:#ecfeff;padding:12px;border-radius:8px;overflow-wrap:anywhere}
+.item{border:1px solid #e2e8f0;padding:12px;border-radius:9px;margin:8px 0}
+footer{text-align:center;padding:20px;color:#64748b}
+</style>
+</head>
+<body>
+<header>
+<h1>CHILLY</h1>
+<p>Connect. Share. Enjoy.</p>
+</header>
+
+<main>
+<section class="card">
+<h2>Welcome to CHILLY 👋</h2>
+<p>Meet friends, create community rooms and enjoy games.</p>
+<p id="status" class="notice">You are browsing as a visitor.</p>
+</section>
+
+<section class="card" id="account">
+<h2 id="authTitle">Create your account</h2>
+<form id="authForm">
+<input id="email" type="email" placeholder="Email address"
+autocomplete="email" required>
+<input id="password" type="password"
+placeholder="Password — at least 6 characters"
+minlength="6" autocomplete="new-password" required>
+<button id="authSubmit" type="submit">Sign up</button>
+<button id="switchAuth" type="button">Already registered? Log in</button>
+</form>
+<button id="forgot" type="button">Forgot password?</button>
+<form id="resetForm" class="hidden">
+<h3>Choose a new password</h3>
+<input id="newPassword" type="password"
+placeholder="New password — at least 6 characters"
+minlength="6" required>
+<button type="submit">Save new password</button>
+</form>
+<p id="authMessage" class="muted" aria-live="polite"></p>
+</section>
+
+<section class="card hidden" id="profile">
+<h2>Your account</h2>
+<p id="userEmail"></p>
+<p class="muted">Your CHILLY account ID</p>
+<p id="userId" style="overflow-wrap:anywhere"></p>
+<button id="logout">Log out</button>
+</section>
+
+<nav>
+<button data-section="home">Home</button>
+<button data-section="rooms">Rooms</button>
+<button data-section="games">Games</button>
+<button data-section="messages">Messages</button>
+<button data-section="subscription">Subscription</button>
+</nav>
+
+<section class="card" id="home">
+<h2>Home Feed 🏠</h2>
+<p>CHILLY is your place to connect and share.</p>
+<p class="muted">Post publishing and the social feed will be connected in a later upgrade.</p>
+</section>
+
+<section class="card hidden" id="rooms">
+<h2>Community Rooms 🎙️</h2>
+<p>Create a room after registering and signing in.</p>
+<form id="roomForm">
+<input id="roomName" placeholder="Room name" maxlength="70" required>
+<textarea id="roomDescription" placeholder="Describe your room"
+maxlength="300"></textarea>
+<select id="roomType">
+<option value="public">Public — other members can join</option>
+<option value="private">Private — only you can currently view it</option>
+</select>
+<button type="submit">Create room</button>
+</form>
+<p id="roomMessage" class="muted"></p>
+<h3>Public rooms</h3>
+<div id="roomList">Sign in to load rooms.</div>
+<p class="muted">Room creation and listing are connected to Supabase. Live audio, video, invitations and co-host controls are not active yet.</p>
+</section>
+
+<section class="card hidden" id="games">
+<h2>CHILLY Games 🎮</h2>
+<p>Ludo · Draft · Pool · Car racing · Football · Cards</p>
+<div id="gameLock" class="notice">
+Subscribe to unlock access to the games area.
+</div>
+<div id="gameContent" class="hidden">
+<h3>Subscription active!</h3>
+<p>You have access to the games area while your subscription remains valid.</p>
+<p class="muted">The actual multiplayer games still need to be developed and connected. Subscription access does not mean the games are playable yet.</p>
+</div>
+<button id="goSubscribe">View subscription plans</button>
+</section>
+
+<section class="card hidden" id="subscription">
+<h2>CHILLY Subscriptions</h2>
+<p>Choose a plan and submit your payment details for administrator verification.</p>
+<div class="item"><b>Daily — UGX 1,000</b></div>
+<div class="item"><b>Weekly — UGX 4,000</b></div>
+<div class="item"><b>Monthly — UGX 15,000</b></div>
+<p class="muted">Only pay using official payment instructions supplied by CHILLY. This page does not process payments automatically.</p>
+<form id="subForm">
+<label for="plan">Choose a plan</label>
+<select id="plan">
+<option value="daily">Daily — UGX 1,000</option>
+<option value="weekly">Weekly — UGX 4,000</option>
+<option value="monthly">Monthly — UGX 15,000</option>
+</select>
+<input id="payNumber" placeholder="Your mobile money number" required>
+<input id="payReference" placeholder="Payment transaction reference" required>
+<button type="submit">Submit payment for verification</button>
+</form>
+<p id="subMessage" class="muted"></p>
+<h3>My subscription</h3>
+<p id="subStatus" class="notice">Sign in to check your subscription.</p>
+</section>
+
+<section class="card hidden" id="messages">
+<h2>Messages 💬</h2>
+<p class="muted">Private messaging is planned for a later upgrade. Messages cannot be sent from this section yet.</p>
+</section>
+</main>
+
+<footer>CHILLY © 2026 · Connect. Share. Enjoy.</footer>
+
+<script>
+(() => {
+"use strict";
+
+const SUPABASE_URL = "https://zvwilsmgrbemelbkapoa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EApHLiCDkmZHUiRl9sTzyQ_INWvLJhp";
+
+const $ = id => document.getElementById(id);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let loginMode = false;
+let recoveringPassword = false;
+
+function message(id, text) {
+  $(id).textContent = text;
+}
+
+function explain(error) {
+  return error?.message || "Something went wrong. Please try again.";
+}
+
+function showSection(name) {
+  const allowed = ["home", "rooms", "games", "messages", "subscription"];
+  if (!allowed.includes(name)) return;
+
+  allowed.forEach(id => $(id).classList.toggle("hidden", id !== name));
+
+  if (name === "rooms") loadRooms();
+  if (name === "subscription") loadSubscription();
+  if (name === "games") loadSubscription();
+}
+
+document.querySelectorAll("[data-section]").forEach(button => {
+  button.addEventListener("click", () => showSection(button.dataset.section));
+});
+
+$("goSubscribe").addEventListener("click", () => showSection("subscription"));
+
+function renderAccount() {
+  const loggedIn = Boolean(currentUser);
+
+  $("account").classList.toggle("hidden", loggedIn && !recoveringPassword);
+  $("profile").classList.toggle("hidden", !loggedIn);
+  $("status").textContent = loggedIn
+    ? "You are signed in to CHILLY."
+    : "You are browsing as a visitor.";
+
+  if (loggedIn) {
+    $("userEmail").textContent = "Email: " + (currentUser.email || "");
+    $("userId").textContent = currentUser.id;
+  }
+
+  if (!loggedIn) {
+    $("roomList").textContent = "Sign in to load rooms.";
+    $("subStatus").textContent = "Sign in to check your subscription.";
+    $("gameLock").classList.remove("hidden");
+    $("gameContent").classList.add("hidden");
+  }
+}
+
+$("switchAuth").addEventListener("click", () => {
+  loginMode = !loginMode;
+  $("authTitle").textContent = loginMode ? "Log in to CHILLY" : "Create your account";
+  $("authSubmit").textContent = loginMode ? "Log in" : "Sign up";
+  $("switchAuth").textContent = loginMode
+    ? "New here? Create an account"
+    : "Already registered? Log in";
+  $("password").autocomplete = loginMode ? "current-password" : "new-password";
+  message("authMessage", "");
+});
+
+$("authForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button = $("authSubmit");
+  button.disabled = true;
+  message("authMessage", "Please wait...");
+
+  try {
+    const email = $("email").value.trim();
+    const password = $("password").value;
+    let result;
+
+    if (loginMode) {
+      result = await db.auth.signInWithPassword({ email, password });
+    } else {
+      result = await db.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+      });
+    }
+
+    if (result.error) throw result.error;
+
+    if (loginMode) {
+      message("authMessage", "Login successful.");
+    } else if (result.data.session) {
+      message("authMessage", "Account created successfully.");
+    } else {
+      message("authMessage", "Account created. Check your email to confirm it before logging in.");
+    }
+
+    await refreshSession();
+  } catch (error) {
+    message("authMessage", "Sign-in error: " + explain(error));
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$("forgot").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+
+  if (!email) {
+    message("authMessage", "Enter your registered email address first.");
+    $("email").focus();
+    return;
+  }
+
+  message("authMessage", "Requesting password reset...");
+
+  try {
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if (error) throw error;
+    message("authMessage", "If the account exists, a reset link will be sent. Check your inbox and spam folder.");
+  } catch (error) {
+    message("authMessage", "Reset error: " + explain(error));
+  }
+});
+
+$("resetForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const password = $("newPassword").value;
+
+  if (password.length < 6) {
+    message("authMessage", "Use at least 6 characters.");
+    return;
+  }
+
+  try {
+    const { error } = await db.auth.updateUser({ password });
+    if (error) throw error;
+    recoveringPassword = false;
+    $("resetForm").classList.add("hidden");
+    message("authMessage", "Password changed successfully. You can now sign in.");
+    await refreshSession();
+  } catch (error) {
+    message("authMessage", "Password update error: " + explain(error));
+  }
+});
+
+$("logout").addEventListener("click", async () => {
+  const { error } = await db.auth.signOut();
+  if (error) {
+    message("authMessage", explain(error));
+    return;
+  }
+  currentUser = null;
+  renderAccount();
+  message("authMessage", "You have logged out.");
+  showSection("home");
+});
+
+async function refreshSession() {
+  try {
+    const { data, error } = await db.auth.getSession();
+    if (error) throw error;
+    currentUser = data.session?.user || null;
+    renderAccount();
+    if (currentUser) {
+      await loadRooms();
+      await loadSubscription();
+    }
+  } catch (error) {
+    message("authMessage", "Session error: " + explain(error));
+  }
+}
+
+db.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+
+  if (event === "PASSWORD_RECOVERY") {
+    recoveringPassword = true;
+    $("resetForm").classList.remove("hidden");
+    $("account").classList.remove("hidden");
+    message("authMessage", "Enter your new password below.");
+  }
+
+  renderAccount();
+});
+
+async function loadRooms() {
+  if (!currentUser) {
+    message("roomMessage", "Please sign in to create rooms and view the public room list.");
+    $("roomList").textContent = "Sign in to load rooms.";
+    return;
+  }
+
+  $("roomList").textContent = "Loading rooms...";
+
+  try {
+    const { data, error } = await db
+      .from("chilly_rooms")
+      .select("id,name,description,room_type,owner_id,created_at")
+      .eq("room_type", "public")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const mine = await db.from("chilly_rooms")
+      .select("id,name,description,room_type,owner_id,created_at")
+      .eq("owner_id", currentUser.id)
+      .eq("room_type", "private")
+      .order("created_at", { ascending: false });
+
+    if (mine.error) throw mine.error;
+
+    $("roomList").replaceChildren();
+
+    const rooms = [...(data || []), ...(mine.data || [])];
+
+    if (!rooms.length) {
+      $("roomList").textContent = "No rooms yet. Be the first to create one!";
+      return;
+    }
+
+    rooms.forEach(room => {
+      const item = document.createElement("div");
+      item.className = "item";
+
+      const title = document.createElement("b");
+      title.textContent = room.name + (room.room_type === "private" ? " 🔒 Private" : " 🌍 Public");
+
+      const desc = document.createElement("p");
+      desc.textContent = room.description || "No description provided.";
+
+      item.append(title, desc);
+      $("roomList").append(item);
+    });
+
+    message("roomMessage", "Rooms loaded.");
+  } catch (error) {
+    $("roomList").textContent = "Could not load rooms: " + explain(error);
+  }
+}
+
+$("roomForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentUser) {
+    message("roomMessage", "Please create an account or log in before creating a room.");
+    return;
+  }
+
+  const name = $("roomName").value.trim();
+  if (!name) {
+    message("roomMessage", "Enter a room name.");
+    return;
+  }
+
+  const button = $("roomForm").querySelector("button");
+  button.disabled = true;
+  message("roomMessage", "Creating your room...");
+
+  try {
+    const { error } = await db.from("chilly_rooms").insert({
+      owner_id: currentUser.id,
+      name,
+      description: $("roomDescription").value.trim(),
+      room_type: $("roomType").value
+    });
+
+    if (error) throw error;
+
+    $("roomForm").reset();
+    message("roomMessage", "Room created successfully!");
+    await loadRooms();
+  } catch (error) {
+    message("roomMessage", "Room error: " + explain(error));
+  } finally {
+    button.disabled = false;
+  }
+});
+
+const planDetails = {
+  daily: { amount: 1000, days: 1 },
+  weekly: { amount: 4000, days: 7 },
+  monthly: { amount: 15000, days: 30 }
+};
+
+async function loadSubscription() {
+  if (!currentUser) {
+    $("gameLock").classList.remove("hidden");
+    $("gameContent").classList.add("hidden");
+    message("subStatus", "Sign in to check your subscription.");
+    return;
+  }
+
+  try {
+    const now = new Date().toISOString();
+    const { data, error } = await db.from("chilly_subscriptions")
+      .select("plan,status,expires_at,created_at")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+
+    const active = (data || []).find(item =>
+      item.status === "active" &&
+      item.expires_at &&
+      new Date(item.expires_at).getTime() > Date.now()
+    );
+
+    if (active) {
+      $("gameLock").classList.add("hidden");
+      $("gameContent").classList.remove("hidden");
+      message("subStatus", "Active " + active.plan + " subscription until " +
+        new Date(active.expires_at).toLocaleString());
+    } else {
+      $("gameLock").classList.remove("hidden");
+      $("gameContent").classList.add("hidden");
+
+      const pending = (data || []).find(item => item.status === "pending");
+      message("subStatus", pending
+        ? "Your payment request is pending administrator verification."
+        : "No active subscription. Choose a plan to request access.");
+    }
+  } catch (error) {
+    $("gameLock").classList.remove("hidden");
+    $("gameContent").classList.add("hidden");
+    message("subStatus", "Subscription check failed: " + explain(error));
+  }
+}
+
+$("subForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentUser) {
+    message("subMessage", "Please sign in before submitting a subscription request.");
+    return;
+  }
+
+  const plan = $("plan").value;
+  const details = planDetails[plan];
+  const paymentReference = $("payReference").value.trim();
+  const payingNumber = $("payNumber").value.trim();
+
+  if (!paymentReference || !payingNumber) {
+    message("subMessage", "Enter both your payment reference and paying number.");
+    return;
+  }
+
+  const button = $("subForm").querySelector("button");
+  button.disabled = true;
+  message("subMessage", "Submitting your request...");
+
+  try {
+    const { error } = await db.from("chilly_subscriptions").insert({
+      user_id: currentUser.id,
+      plan,
+      amount_ugx: details.amount,
+      payment_reference: paymentReference,
+      paying_number: payingNumber,
+      status: "pending",
+      expires_at: null
+    });
+
+    if (error) throw error;
+
+    $("subForm").reset();
+    message("subMessage", "Request submitted. Your subscription stays locked until an administrator verifies your payment and approves access.");
+    await loadSubscription();
+  } catch (error) {
+    message("subMessage", "Subscription request error: " + explain(error));
+  } finally {
+    button.disabled = false;
+  }
+});
+
+refreshSession();
+})();
+</script>
+</body>
+</html>
