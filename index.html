@@ -1,245 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CHILLY | Connect. Share. Enjoy.</title>
-<meta name="description" content="CHILLY is a community to share moments, meet friends and enjoy games.">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHILLY — Connect, Share, Enjoy</title>
+<meta name="description" content="CHILLY community website for accounts, rooms, subscriptions and games.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial,sans-serif}
-header{background:#172554;color:white;padding:18px;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:28px;font-weight:bold;color:#67e8f9}
-header p{margin:4px 0 0;font-size:12px}
-main{max-width:720px;margin:22px auto;padding:0 13px}
-.card{background:white;padding:19px;border-radius:14px;margin-bottom:16px;box-shadow:0 2px 10px #0000000b}
-h2{margin-top:0}
-input,textarea{display:block;width:100%;padding:13px;margin:9px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
-button{padding:12px 15px;margin:4px 2px;border:0;border-radius:8px;background:#0891b2;color:white;font-weight:bold;font-size:14px}
-.alt{background:#e2e8f0;color:#172033}
-nav{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:15px}
-nav button{flex:1;min-width:75px}
-.muted{color:#64748b;font-size:14px;line-height:1.5}
-.status{padding:11px;background:#ecfeff;border-radius:8px;overflow-wrap:anywhere}
-.hidden{display:none!important}
-.post{border-bottom:1px solid #e2e8f0;padding:12px 0}
-footer{text-align:center;padding:25px;color:#64748b;font-size:13px}
-</style>
-</head>
-<body>
-<header>
- <div><div class="logo">CHILLY</div><p>Connect. Share. Enjoy.</p></div>
- <button id="logout" class="alt hidden">Log out</button>
-</header>
-
-<main>
- <section class="card">
-  <h2>Welcome to CHILLY 👋</h2>
-  <p>Meet friends, share your moments and discover your community.</p>
-  <div id="status" class="status">Welcome! You are visiting as a guest.</div>
- </section>
-
- <section class="card" id="account">
-  <h2 id="formTitle">Create your account</h2>
-  <p class="muted">Use your email address to register or log in.</p>
-  <form id="authForm">
-   <input id="email" type="email" placeholder="Email address" autocomplete="email" required>
-   <input id="password" type="password" placeholder="Password (at least 6 characters)" minlength="6" required>
-   <button id="submit" type="submit">Sign up</button>
-   <button id="switch" class="alt" type="button">Already registered? Log in</button>
-  </form>
-  <button id="forgot" class="alt" type="button">Forgot password?</button>
-  <p id="authMessage" class="muted" aria-live="polite"></p>
- </section>
-
- <section class="card hidden" id="profile">
-  <h2>Your account</h2>
-  <p id="userEmail"></p>
-  <p class="muted">Your CHILLY account ID:</p>
-  <p id="userId" style="overflow-wrap:anywhere"></p>
- </section>
-
- <nav>
-  <button onclick="section('feed')">Home</button>
-  <button onclick="section('rooms')">Rooms</button>
-  <button onclick="section('games')">Games</button>
-  <button onclick="section('messages')">Messages</button>
- </nav>
-
- <section class="card" id="feed">
-  <h2>Home Feed 🏠</h2>
-  <p class="muted">Share your thoughts with the CHILLY community.</p>
-  <textarea id="postText" rows="3" placeholder="What would you like to share?"></textarea>
-  <button id="postButton">Create post</button>
-  <p id="postMessage" class="muted">Saving posts will be connected in the next setup step.</p>
-  <div class="post"><strong>Welcome to CHILLY!</strong><p class="muted">Connect. Share. Enjoy.</p></div>
- </section>
-
- <section class="card hidden" id="rooms">
-  <h2>Community Rooms 🎙️</h2>
-  <p>Public rooms, private rooms, music, conversations and new friends.</p>
-  <p class="muted">Live audio and video will be added after the accounts are working.</p>
- </section>
-
- <section class="card hidden" id="games">
-  <h2>CHILLY Games 🎮</h2>
-  <p>Ludo · Draft · Pool · Racing · Football · Cards</p>
-  <p class="muted">Online multiplayer and paid matches are not active yet. Payment and game rules must be set up and tested before real-money matches begin.</p>
- </section>
-
- <section class="card hidden" id="messages">
-  <h2>Messages 💬</h2>
-  <p class="muted">Private messaging will be added in a later step.</p>
- </section>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151e33;--panel2:#1c2945;--line:#2e3c5b;--text:#f4f7ff;--muted:#aebbd4;--mint:#7de7d2;--purple:#b7a2ff;--red:#ff9aa9}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#24385b,var(--bg) 60%);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}button,input,select{font:inherit}button{border:0;border-radius:11px;padding:11px 15px;background:var(--mint);color:#071720;font-weight:750;cursor:pointer}button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.5;cursor:not-allowed}input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0b1428;color:var(--text);margin:5px 0 13px}label{font-size:.92rem;color:var(--muted)}.wrap{max-width:1050px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0 20px}.logo{font-weight:950;font-size:1.65rem;letter-spacing:.08em}.logo span{color:var(--mint)}.muted,.status{color:var(--muted)}.hero{border:1px solid var(--line);border-radius:22px;padding:clamp(18px,4vw,32px);background:linear-gradient(120deg,#1b2d4b,#1c1938);margin-bottom:16px}.hero h1{font-size:clamp(2rem,6vw,3.3rem);line-height:1.06;margin:0 0 12px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.tab{background:var(--panel);color:var(--text);border:1px solid var(--line)}.tab.active{background:var(--mint);color:#071720}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}.card{background:rgba(21,30,51,.96);border:1px solid var(--line);border-radius:17px;padding:18px;min-width:0}.card h2,.card h3{margin-top:0}.hidden{display:none!important}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.row>*{flex:1}.notice{padding:12px 14px;border-radius:11px;background:#17333a;color:#c9fff3;margin:10px 0;white-space:pre-wrap}.notice.error{background:#402331;color:#ffdce2}.small{font-size:.88rem}.pill{display:inline-block;border:1px solid var(--line);border-radius:30px;padding:3px 9px;color:var(--muted);font-size:.8rem}.room{border:1px solid var(--line);background:#10192d;border-radius:12px;padding:12px;margin:8px 0}.footer{padding:25px 0;color:var(--muted);font-size:.85rem}.textbtn{background:none;color:var(--muted);padding:5px;text-decoration:underline;font-weight:500}.game{display:flex;flex-direction:column;justify-content:space-between;min-height:165px}.emoji{font-size:2rem}#board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;max-width:340px;margin:12px auto}#board span{background:#253656;border:1px solid #4c638b;border-radius:7px;text-align:center;padding:9px 0}#board span.current{background:var(--mint);color:#06151b;font-weight:800}#board span.finish{background:#604d91}@media(max-width:480px){.wrap{padding:11px}.card{padding:14px}}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="logo">❄ CHILLY<span>.</span></div><div class="row" style="flex:0 1 auto"><span id="authState" class="status">Checking account…</span><button id="logout" class="secondary hidden">Log out</button></div></header>
+<section class="hero"><h1>Connect. Share. Enjoy.</h1><p class="muted">Meet people, create rooms, and enjoy your community on CHILLY.</p><div class="row"><button id="heroSignup">Create account</button><button class="secondary" id="heroRooms">Explore rooms</button></div></section>
+<div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+<nav class="tabs" aria-label="Main navigation"><button class="tab active" data-page="home">Home</button><button class="tab" data-page="rooms">Rooms</button><button class="tab" data-page="games">Games</button><button class="tab" data-page="subscription">Subscription</button><button class="tab" data-page="account">Account</button></nav>
+<section class="page" id="page-home"><div class="grid"><article class="card"><h2>👋 Join CHILLY</h2><p class="muted">Register with your email, then sign in securely.</p><button data-go="account">Sign up / Log in</button></article><article class="card"><h2>🎙️ Community rooms</h2><p class="muted">Create a room or browse public rooms saved on this device.</p><button data-go="rooms">Open rooms</button></article><article class="card"><h2>🎮 Games</h2><p class="muted">Games are locked until your subscription is approved. A small playable dice race is included.</p><button data-go="games">View games</button></article></div></section>
+<section class="page hidden" id="page-account"><div class="grid"><article class="card"><h2>Create account</h2><form id="signup"><label for="suEmail">Email address</label><input id="suEmail" type="email" autocomplete="email" placeholder="you@example.com" required><label for="suPass">Password (at least 6 characters)</label><input id="suPass" type="password" autocomplete="new-password" minlength="6" placeholder="Create a password" required><button type="submit">Create account</button></form><p class="small muted">If email confirmation is enabled, confirm your email before logging in.</p></article><article class="card"><h2>Log in</h2><form id="login"><label for="liEmail">Email address</label><input id="liEmail" type="email" autocomplete="username" placeholder="you@example.com" required><label for="liPass">Password</label><input id="liPass" type="password" autocomplete="current-password" placeholder="Your password" required><button type="submit">Log in</button></form><button class="textbtn" id="forgot">Forgot password?</button><form id="resetForm" class="hidden"><label for="resetEmail">Your account email</label><input id="resetEmail" type="email" required placeholder="you@example.com"><button type="submit">Send reset email</button></form></article></div><article class="card" style="margin-top:14px"><h3>Account status</h3><p id="accountInfo" class="muted">Sign in to see your account information.</p></article></section>
+<section class="page hidden" id="page-rooms"><div class="grid"><article class="card"><h2>Create a room</h2><p class="small muted">You must be signed in. Room data in this starter file is stored in this browser, not shared across devices.</p><form id="roomForm"><label for="roomName">Room name</label><input id="roomName" maxlength="60" placeholder="Evening Hangout" required><label for="roomType">Room type</label><select id="roomType"><option>Voice chat</option><option>Video chat</option><option>Music & entertainment</option><option>Meet new friends</option><option>Gaming</option></select><label for="privacy">Room privacy</label><select id="privacy"><option value="public">Public — anyone can join</option><option value="private">Private — creator only until invite feature is connected</option></select><button type="submit">Create room</button></form></article><article class="card"><h2>Find rooms</h2><div class="row"><input id="roomSearch" aria-label="Search rooms" placeholder="Search rooms"><button class="secondary" id="refreshRooms">Refresh</button></div><div id="roomList"></div></article></div></section>
+<section class="page hidden" id="page-games"><div id="gameGate" class="notice">Checking sign-in and subscription status…</div><div class="grid"><article class="card game"><div><div class="emoji">🎲</div><h3>Mini Dice Race</h3><p class="muted small">Playable single-player demo. This is not online multiplayer Ludo.</p></div><button id="playGame" disabled>Play</button></article><article class="card game"><div><div class="emoji">🏎️</div><h3>Car racing</h3><p class="muted small">Online multiplayer engine not connected yet.</p></div><button disabled class="secondary">Coming later</button></article><article class="card game"><div><div class="emoji">⚽</div><h3>Football</h3><p class="muted small">Online multiplayer engine not connected yet.</p></div><button disabled class="secondary">Coming later</button></article><article class="card game"><div><div class="emoji">🎱</div><h3>Pool table</h3><p class="muted small">Online multiplayer engine not connected yet.</p></div><button disabled class="secondary">Coming later</button></article><article class="card game"><div><div class="emoji">🃏</div><h3>Playing cards</h3><p class="muted small">Online multiplayer engine not connected yet.</p></div><button disabled class="secondary">Coming later</button></article><article class="card game"><div><div class="emoji">♟️</div><h3>Draft</h3><p class="muted small">Online multiplayer engine not connected yet.</p></div><button disabled class="secondary">Coming later</button></article></div><article id="gamePanel" class="card hidden" style="margin-top:14px"><div class="row"><h2>Mini Dice Race</h2><button id="closeGame" class="secondary">Close</button></div><p>Roll the die and reach square 20 to finish.</p><div id="board"></div><div class="row"><button id="roll">🎲 Roll die</button><p id="gameStatus" class="status">Position: 0 / 20</p></div></article></section>
+<section class="page hidden" id="page-subscription"><div class="grid"><article class="card"><h2>Daily</h2><p class="muted">24-hour access</p><h3>UGX 1,000</h3><button data-plan="Daily">Choose daily</button></article><article class="card"><h2>Weekly</h2><p class="muted">7-day access</p><h3>UGX 4,000</h3><button data-plan="Weekly">Choose weekly</button></article><article class="card"><h2>Monthly</h2><p class="muted">30-day access</p><h3>UGX 15,000</h3><button data-plan="Monthly">Choose monthly</button></article></div><article class="card" style="margin-top:14px"><h2>Submit payment reference</h2><p class="muted">Pay only using the payment instructions officially confirmed by CHILLY. Never enter your mobile money PIN or password here. Access stays locked until the administrator approves payment.</p><p><strong>Mobile Money number:</strong> 0747064373</p><form id="subForm"><label for="plan">Plan</label><select id="plan"><option value="Daily">Daily — UGX 1,000</option><option value="Weekly">Weekly — UGX 4,000</option><option value="Monthly">Monthly — UGX 15,000</option></select><label for="payNumber">Number used to pay</label><input id="payNumber" type="tel" placeholder="07XXXXXXXX" required><label for="payRef">Transaction reference</label><input id="payRef" maxlength="100" placeholder="Transaction ID" required><label for="payEmail">Registered CHILLY email</label><input id="payEmail" type="email" placeholder="you@example.com" required><button type="submit">Send for verification</button></form><p id="subStatus" class="status"></p></article></section>
+<footer class="footer">CHILLY • Connect, Share, Enjoy.<br>For safety, the browser key is a publishable key. Supabase Row Level Security must protect all database tables. Never put a service-role key in this file.</footer>
 </main>
-<footer>CHILLY © 2026 · Connect. Share. Enjoy.</footer>
-
 <script>
-const SUPABASE_URL ="https://zvwilsmgrbemelbkapoa.supabase.co" 
-const SUPABASE_KEY =sb_publishable_EApHLiCDkmZHUiRl9sTzyQ_INWvLJhp
-
-let db = null;
-let loginMode = false;
-let activeUser = null;
-let authListener = null;
-
-const authMessage = document.getElementById("authMessage");
-const account = document.getElementById("account");
-
-if (SUPABASE_URL.startsWith("https://") &&
-    !SUPABASE_KEY.includes("PASTE_")) {
-  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  startApp();
-} else {
-  authMessage.textContent =
-    "Setup needed: add your Supabase project URL and publishable key in the code.";
-}
-
-async function startApp() {
-  const {data, error} = await db.auth.getSession();
-  if (error) authMessage.textContent = error.message;
-  activeUser = data.session ? data.session.user : null;
-  updateAccount();
-
-  if (authListener) authListener.subscription.unsubscribe();
-  const result = db.auth.onAuthStateChange((_event, session) => {
-    activeUser = session ? session.user : null;
-    updateAccount();
-  });
-  authListener = result.data.subscription;
-}
-
-function updateAccount() {
-  const signedIn = !!activeUser;
-  document.getElementById("status").textContent = signedIn
-    ? "You are logged in to CHILLY."
-    : "Welcome! You are visiting as a guest.";
-  account.classList.toggle("hidden", signedIn);
-  document.getElementById("profile").classList.toggle("hidden", !signedIn);
-  document.getElementById("logout").classList.toggle("hidden", !signedIn);
-
-  if (signedIn) {
-    document.getElementById("userEmail").textContent =
-      "Email: " + activeUser.email;
-    document.getElementById("userId").textContent = activeUser.id;
-  }
-}
-
-document.getElementById("switch").onclick = () => {
-  loginMode = !loginMode;
-  document.getElementById("formTitle").textContent =
-    loginMode ? "Log in to CHILLY" : "Create your account";
-  document.getElementById("submit").textContent =
-    loginMode ? "Log in" : "Sign up";
-  document.getElementById("switch").textContent =
-    loginMode ? "New here? Create an account" : "Already registered? Log in";
-  document.getElementById("password").autocomplete =
-    loginMode ? "current-password" : "new-password";
-  authMessage.textContent = "";
-};
-
-document.getElementById("authForm").onsubmit = async (event) => {
-  event.preventDefault();
-  if (!db) {
-    authMessage.textContent = "Please configure the Supabase keys first.";
-    return;
-  }
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const button = document.getElementById("submit");
-  button.disabled = true;
-  authMessage.textContent = "Please wait...";
-
-  try {
-    if (loginMode) {
-      const {error} = await db.auth.signInWithPassword({email, password});
-      if (error) throw error;
-      authMessage.textContent = "Login successful.";
-    } else {
-      const {data, error} = await db.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.href.split("#")[0]
-        }
-      });
-      if (error) throw error;
-      authMessage.textContent = data.session
-        ? "Your account has been created."
-        : "Registration received. Check your email and confirm your address before logging in.";
-    }
-  } catch (error) {
-    authMessage.textContent = error.message || "Please try again.";
-  } finally {
-    button.disabled = false;
-  }
-};
-
-document.getElementById("forgot").onclick = async () => {
-  if (!db) {
-    authMessage.textContent = "Configure the Supabase keys first.";
-    return;
-  }
-  const email = document.getElementById("email").value.trim();
-  if (!email) {
-    authMessage.textContent = "Enter your email address first.";
-    return;
-  }
-  authMessage.textContent = "Sending reset email...";
-  const {error} = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href.split("#")[0]
-  });
-  authMessage.textContent = error
-    ? error.message
-    : "If the address is registered, a password reset email will be sent.";
-};
-
-document.getElementById("logout").onclick = async () => {
-  if (!db) return;
-  const {error} = await db.auth.signOut();
-  authMessage.textContent = error ? error.message : "You have logged out.";
-};
-
-document.getElementById("postButton").onclick = () => {
-  const text = document.getElementById("postText").value.trim();
-  const result = document.getElementById("postMessage");
-  if (!text) {
-    result.textContent = "Please write something first.";
-  } else if (!activeUser) {
-    result.textContent = "Please register or log in first.";
-  } else {
-    result.textContent =
-      "Your account is working. We will connect post saving next.";
-  }
-};
-
-function section(name) {
-  ["feed","rooms","games","messages"].forEach(id => {
-    document.getElementById(id).classList.toggle("hidden", id !== name);
-  });
-}
-</script>
-</body>
-</html>
+(()=>{'use strict';
+const SUPABASE_URL='https://zvwilsmgrbemelbkapoa.supabase.co';
+const SUPABASE_KEY='sb_publishable_EApHLiCDkmZHUiRl9sTzyQ_INWvLJhp';
+const $=id=>document.getElementById(id);let client=null,user=null,position=0;
+const showMessage=(text,error=false)=>{const m=$('message');m.textContent=text;m.classList.remove('hidden','error');if(error)m.classList.add('error');window.scrollTo({top:0,behavior:'smooth'});};
+const friendly=e=>{let t=e?.message||String(e||'Unknown error');if(/invalid login credentials/i.test(t))return 'Email or password is incorrect.';if(/email not confirmed/i.test(t))return 'Confirm your email using the link sent to your inbox, then log in.';if(/rate limit/i.test(t))return 'Email request limit reached. Wait a while and try again.';return t;};
+function go(name){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name)?.classList.remove('hidden');document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));if(name==='rooms')renderRooms();if(name==='account')updateUser();if(name==='games')checkAccess();}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));$('heroSignup').onclick=()=>go('account');$('heroRooms').onclick=()=>go('rooms');
+function updateUser(){const yes=!!user;$('authState').textContent=yes?'Signed in: '+(user.email||'member'):'Not signed in';$('logout').classList.toggle('hidden',!yes);$('accountInfo').textContent=yes?'Signed in as '+user.email+'. Account ID: '+user.id:'Sign in to see your account information.';if(yes&&user.email&&!$('payEmail').value)$('payEmail').value=user.email;}
+async function needClient(){if(!client)throw new Error('Supabase could not load. Check your internet connection and refresh.');}
+$('signup').addEventListener('submit',async e=>{e.preventDefault();try{await needClient();const email=$('suEmail').value.trim(),password=$('suPass').value;if(password.length<6)throw new Error('Password must have at least 6 characters.');const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.href.split('#')[0]}});if(error)throw error;$('suPass').value='';showMessage(data.session?'Account created and signed in.':'Account created/requested. Check your email for a confirmation link, then log in.');if(data.user&&!data.session)go('account');}catch(e2){showMessage(friendly(e2),true);}});
+$('login').addEventListener('submit',async e=>{e.preventDefault();try{await needClient();const {data,error}=await client.auth.signInWithPassword({email:$('liEmail').value.trim(),password:$('liPass').value});if(error)throw error;user=data.user;$('liPass').value='';updateUser();checkAccess();showMessage('Login successful.');go('home');}catch(e2){showMessage(friendly(e2),true);}});
+$('forgot').onclick=()=>{$('resetForm').classList.toggle('hidden');if($('liEmail').value)$('resetEmail').value=$('liEmail').value;};
+$('resetForm').addEventListener('submit',async e=>{e.preventDefault();try{await needClient();const {error}=await client.auth.resetPasswordForEmail($('resetEmail').value.trim(),{redirectTo:location.href.split('#')[0]});if(error)throw error;showMessage('Password reset request sent if that email belongs to an account. Check inbox and spam.');}catch(e2){showMessage(friendly(e2),true);}});
+$('logout').onclick=async()=>{try{if(client){const {error}=await client.auth.signOut();if(error)throw error;}user=null;updateUser();checkAccess();showMessage('You have logged out.');go('home');}catch(e){showMessage(friendly(e),true);}};
+function rooms(){try{return JSON.parse(localStorage.getItem('chilly_rooms_v1')||'[]')}catch{return []}}function storeRooms(a){localStorage.setItem('chilly_rooms_v1',JSON.stringify(a))}
+$('roomForm').addEventListener('submit',e=>{e.preventDefault();if(!user){showMessage('Please sign in before creating a room.',true);go('account');return;}const name=$('roomName').value.trim();if(!name)return;const a=rooms();a.unshift({id:Date.now().toString(36),name,type:$('roomType').value,privacy:$('privacy').value,owner:user.id});storeRooms(a);$('roomName').value='';renderRooms();showMessage('Room created on this device. Shared rooms, voice/video calls and invitations need a database and real-time calling service.');});
+$('roomSearch').addEventListener('input',renderRooms);$('refreshRooms').onclick=renderRooms;
+function renderRooms(){const box=$('roomList');if(!box)return;const q=$('roomSearch').value.toLowerCase();const a=rooms().filter(r=>r.name.toLowerCase().includes(q)&&(r.privacy==='public'||(user&&r.owner===user.id)));box.replaceChildren();if(!a.length){const p=document.createElement('p');p.className='muted small';p.textContent='No rooms found on this device.';box.append(p);return;}a.forEach(r=>{const d=document.createElement('div');d.className='room';const h=document.createElement('strong');h.textContent=r.name;const p=document.createElement('p');p.className='muted small';p.textContent=r.type+' · '+r.privacy;const b=document.createElement('button');b.className='secondary';b.textContent='Open room';b.onclick=()=>showMessage(r.privacy==='private'&&r.owner!==user?.id?'This private room is only available to its creator in this starter version.':'Room selected. Live room chat/calls are not connected yet.');d.append(h,p,b);box.append(d);});}
+document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>{$('plan').value=b.dataset.plan;go('subscription');});
+$('subForm').addEventListener('submit',async e=>{e.preventDefault();try{await needClient();if(!user){throw new Error('Log in using the email registered on CHILLY before submitting payment.');}const email=$('payEmail').value.trim();if(email.toLowerCase()!==(user.email||'').toLowerCase())throw new Error('The registered email must match the account currently signed in.');
+// This insert assumes these columns exist in chilly_subscriptions. If your table uses different names, the database error is displayed below.
+const payload={user_id:user.id,plan:$('plan').value,payment_number:$('payNumber').value.trim(),payment_reference:$('payRef').value.trim(),email,status:'pending'};
+const {error}=await client.from('chilly_subscriptions').insert(payload);if(error)throw error;$('subStatus').textContent='Submitted for admin verification. Your games remain locked until approval.';$('payRef').value='';showMessage('Payment reference submitted for verification.');
+}catch(e2){$('subStatus').textContent='Submission failed: '+friendly(e2);showMessage('Could not submit payment reference. Check the chilly_subscriptions column names and Supabase Row Level Security. Details: '+friendly(e2),true);}});
+async function checkAccess(){const gate=$('gameGate');$('playGame').disabled=true;if(!user){gate.textContent='Games are locked. Sign in and get an active subscription approved by the administrator.';return;}gate.textContent='Checking your subscription…';try{const {data,error}=await client.from('chilly_subscriptions').select('*').eq('user_id',user.id).limit(30);if(error)throw error;const now=Date.now();const ok=(data||[]).some(s=>['approved','active','confirmed'].includes(String(s.status||'').toLowerCase())&&(!(s.expires_at||s.expiry_date||s.end_date)||new Date(s.expires_at||s.expiry_date||s.end_date).getTime()>now));$('playGame').disabled=!ok;gate.textContent=ok?'Active subscription detected. Mini Dice Race is unlocked.':'No approved active subscription found. Submit payment and wait for admin approval.';}catch(e){gate.textContent='Subscription status could not be verified, so games remain locked. Ask the administrator to check the table and access policies.';}}
+$('playGame').onclick=()=>{if($('playGame').disabled)return;$('gamePanel').classList.remove('hidden');drawBoard();};$('closeGame').onclick=()=>$('gamePanel').classList.add('hidden');function drawBoard(){const b=$('board');b.replaceChildren();for(let i=0;i<=20;i++){const s=document.createElement('span');s.textContent=i===0?'START':i===20?'🏁':i;s.className=(i===position?'current ':'')+(i===20?'finish':'');b.append(s);}$('gameStatus').textContent='Position: '+position+' / 20';}$('roll').onclick=()=>{const die=1+Math.floor(Math.random()*6);position=Math.min(20,position+die);drawBoard();$('gameStatus').textContent=position===20?'You reached the finish! Reload this page to restart.':'You rolled '+die+'. Position: '+position+' / 20';};
+(async()=>{try{if(!window.supabase?.createClient)throw new Error('Supabase library not available.');client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data,error}=await client.auth.getSession();if(error)throw error;user=data.session?.user||null;updateUser();checkAccess();client.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;updateUser();checkAccess();});}catch(e){$('authState').textContent='Connection issue';showMessage('Supabase connection could not be initialized: '+friendly(e),true);}})();renderRooms();
+})();
+</script></body></html>
