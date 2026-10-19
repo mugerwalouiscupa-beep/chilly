@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CHILLY Racing 3D — Prototype</title>
+<style>
+:root{--cyan:#48e5ff;--gold:#ffcf55;--panel:rgba(7,13,23,.78);--line:rgba(255,255,255,.16)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111c;color:#fff;font-family:Inter,system-ui,Arial,sans-serif}
+#renderCanvas{width:100%;height:100%;display:block;outline:none;touch-action:none}
+.hud{position:fixed;inset:0;pointer-events:none}
+.topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.brand,.stats,.help,.startcard{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px);box-shadow:0 8px 30px #0005;border-radius:15px}
+.brand{padding:11px 15px}.brand strong{display:block;letter-spacing:2px;font-size:14px}.brand span{font-size:10px;color:var(--cyan);letter-spacing:2px}
+.stats{display:flex;gap:18px;padding:10px 14px}.stat small{display:block;color:#9fb2c7;font-size:9px;letter-spacing:1.3px}.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.rightstack{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pill{pointer-events:auto;background:#111d2c;color:white;border:1px solid var(--line);border-radius:99px;padding:9px 13px;font-weight:700;font-size:11px;cursor:pointer}
+.help{position:absolute;left:14px;bottom:14px;padding:10px 13px;font-size:11px;color:#d4dfed;max-width:290px;line-height:1.55}
+.help b{color:var(--cyan)}
+.startwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;pointer-events:auto;background:linear-gradient(90deg,#02060a99,#02060a22,#02060a99)}
+.startcard{width:min(470px,100%);padding:25px 25px 22px;text-align:center}
+.eyebrow{font-size:10px;letter-spacing:3px;color:var(--cyan);font-weight:800}.startcard h1{font-size:clamp(28px,6vw,48px);line-height:.98;margin:12px 0 12px;letter-spacing:-1.8px}.startcard p{color:#b8c7d8;line-height:1.6;font-size:13px;margin:0 auto 20px;max-width:350px}
+.primary{border:0;border-radius:10px;padding:14px 24px;background:linear-gradient(135deg,#57edff,#1687ee);color:#04101b;font-weight:900;letter-spacing:1.5px;cursor:pointer;min-width:180px}
+.secondary{margin-top:10px;background:transparent;color:#c6d6e8;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+#mobileControls{position:fixed;left:0;right:0;bottom:18px;display:none;justify-content:space-between;padding:0 18px;pointer-events:none}
+.pad{display:flex;gap:10px;align-items:flex-end}.control{pointer-events:auto;user-select:none;-webkit-user-select:none;touch-action:none;width:58px;height:58px;border-radius:18px;border:1px solid #ffffff45;background:#07111cbb;color:white;font-size:22px;font-weight:900;box-shadow:0 5px 18px #0005}
+.control.gas{height:72px;background:#0c5d55dd;border-color:#4ef0d2aa}.control.brake{height:62px;background:#762b35dd;border-color:#ff687aaa}.control:active,.control.active{transform:scale(.96);filter:brightness(1.35)}
+#toast{position:fixed;top:90px;left:50%;transform:translateX(-50%);background:#07111ce8;border:1px solid var(--line);padding:10px 16px;border-radius:99px;font-size:12px;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#07111c;color:#d9e8f6;z-index:5;letter-spacing:2px;font-size:12px}
+@media(max-width:700px){.topbar{top:9px;left:9px;right:9px}.brand{padding:9px 10px}.brand strong{font-size:11px}.brand span{font-size:8px}.stats{gap:10px;padding:8px 10px}.stat b{font-size:16px}.stat small{font-size:8px}.help{display:none}#mobileControls{display:flex}.rightstack .pill{padding:7px 10px}.startcard{padding:22px 18px}}
+</style>
+</head>
+<body>
+<canvas id="renderCanvas"></canvas>
+<div id="loading">LOADING CHILLY RACING 3D…</div>
+<div class="hud">
+  <div class="topbar">
+    <div class="brand"><strong>CHILLY <span style="color:white">RACING</span></strong><span>3D • TRACK TEST</span></div>
+    <div class="stats">
+      <div class="stat"><small>SPEED</small><b><span id="speed">000</span><small style="display:inline;color:#9fb2c7"> KM/H</small></b></div>
+      <div class="stat"><small>LAP</small><b id="lap">1/3</b></div>
+      <div class="stat"><small>TIME</small><b id="time">00:00</b></div>
+    </div>
+    <div class="rightstack"><button class="pill" id="resetBtn">↻ RESET CAR</button><button class="pill" id="qualityBtn">QUALITY: HIGH</button></div>
+  </div>
+  <div class="help"><b>DRIVE</b> &nbsp; W / ↑ accelerate · S / ↓ brake/reverse<br><b>STEER</b> &nbsp; A / ← and D / → · Space handbrake<br>Follow the cyan racing line and pass the start/finish gate.</div>
+</div>
+<div id="mobileControls">
+  <div class="pad"><button class="control" data-key="left">◀</button><button class="control" data-key="right">▶</button></div>
+  <div class="pad"><button class="control brake" data-key="brake">▼</button><button class="control gas" data-key="gas">▲</button></div>
+</div>
+<div id="startwrap" class="startwrap">
+ <div class="startcard">
+  <div class="eyebrow">ORIGINAL CHILLY GAME PROJECT</div>
+  <h1>OWN THE<br><span style="color:var(--cyan)">RACING LINE.</span></h1>
+  <p>A playable 3D browser racing prototype. Take the wheel, test the track and push for a clean lap. This is our foundation for the full CHILLY racing game.</p>
+  <button class="primary" id="startBtn">START ENGINE</button><br>
+  <button class="secondary" id="howBtn">HOW TO DRIVE</button>
+ </div>
+</div>
+<div id="toast"></div>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script>
+(() => {
+const canvas=document.getElementById("renderCanvas"), loading=document.getElementById("loading");
+if(!window.BABYLON){loading.textContent="Babylon.js could not load. Check your internet connection and refresh.";return;}
+const B= BABYLON, engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:true,antialias:true});
+let scene, car, wheels=[], camera, running=false, quality=true, elapsed=0, speed=0, heading=0, lap=1, lastAngle=null, startAngle=-Math.PI/2, lapCooldown=0, offTrack=0;
+const keys={gas:false,brake:false,left:false,right:false,hand:false};
+const speedEl=document.getElementById("speed"), timeEl=document.getElementById("time"), lapEl=document.getElementById("lap"), startwrap=document.getElementById("startwrap"), toast=document.getElementById("toast");
+function mat(name,color,rough=.6,metal=0){const m=new B.StandardMaterial(name,scene);m.diffuseColor=B.Color3.FromHexString(color);m.specularColor=new B.Color3(.35,.4,.48);m.specularPower=64;m.roughness=rough;m.metallic=metal;return m;}
+function box(name,w,h,d,x,y,z,material,parent){const m=B.MeshBuilder.CreateBox(name,{width:w,height:h,depth:d},scene);m.position.set(x,y,z);m.material=material;if(parent)m.parent=parent;return m;}
+function cyl(name,diam,height,x,y,z,material,parent,rot){const m=B.MeshBuilder.CreateCylinder(name,{diameter:diam,height,tessellation:24},scene);m.position.set(x,y,z);m.material=material;if(parent)m.parent=parent;if(rot)m.rotation.set(...rot);return m;}
+function makeCar(){
+ const root=new B.TransformNode("player-car",scene);
+ const paint=mat("electric blue paint","#087ee8",.22,.55), dark=mat("rubber","#10151c",.94), glass=mat("glass","#172f46",.18,.25), trim=mat("trim","#101820",.35,.35), light=mat("LED","#a7f5ff",.18,.2), red=mat("tail lights","#ff233f",.3);
+ box("lower chassis",2.05,.42,4.25,0,.58,0,paint,root);
+ const hood=box("sculpted hood",1.92,.24,1.42,0,.82,-1.22,paint,root);hood.rotation.x=-.035;
+ box("rear deck",1.9,.22,.92,0,.8,1.38,paint,root);
+ const cabin=box("cabin",1.48,.64,1.72,0,1.12,.05,glass,root);cabin.rotation.x=-.035;
+ box("roof",1.36,.12,.88,0,1.48,.08,paint,root);
+ box("front splitter",2.12,.12,.38,0,.36,-2.02,trim,root);
+ box("rear diffuser",1.9,.13,.3,0,.35,2.05,trim,root);
+ for(const x of [-.68,.68]){
+   box("headlight",.43,.12,.08,x,.76,-2.14,light,root);
+   box("tail light",.46,.12,.07,x,.75,2.14,red,root);
+ }
+ // Mirrors and side skirts
+ for(const x of [-1.05,1.05]){
+   box("side skirt",.12,.18,2.6,x,.42,.05,trim,root);
+   box("mirror",.2,.12,.28,x,.91,-.63,paint,root);
+ }
+ // Four detailed wheels; their rolling animation is visual
+ for(const x of [-1.02,1.02]) for(const z of [-1.35,1.35]){
+   const pivot=new B.TransformNode("wheel-pivot",scene);pivot.parent=root;pivot.position.set(x,.43,z);
+   const tire=cyl("performance tire",.78,.34,0,0,0,dark,pivot,[0,0,Math.PI/2]);
+   const rim=cyl("alloy rim",.49,.355,0,0,0,mat("alloy","#9aaab9",.25,.8),pivot,[0,0,Math.PI/2]);
+   const hub=cyl("wheel hub",.17,.37,0,0,0,trim,pivot,[0,0,Math.PI/2]);
+   wheels.push({pivot,z,front:z<0});
+ }
+ root.position.set(0,.04,-49);root.rotation.y=Math.PI/2;return root;
+}
+function buildScene(){
+ scene=new B.Scene(engine);scene.clearColor=new B.Color4(.49,.72,.88,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.0017;scene.fogColor=new B.Color3(.49,.72,.88);
+ const hemi=new B.HemisphericLight("sky",new B.Vector3(0,1,0),scene);hemi.intensity=.85;
+ const sun=new B.DirectionalLight("sun",new B.Vector3(-.5,-1,.35),scene);sun.position=new B.Vector3(80,120,-50);sun.intensity=1.25;
+ const grass=mat("infield grass","#4b7750",.95), asphalt=mat("race asphalt","#252d37",.92), white=mat("track paint","#e9edf0",.8), cyan=mat("chilly cyan","#27d9ed",.35,.15), curbRed=mat("curb red","#dc3d4e",.7), barrier=mat("barrier","#b9c7d0",.6), dark=mat("barrier dark","#24313e",.7);
+ const ground=B.MeshBuilder.CreateGround("land",{width:650,height:650},scene);ground.material=grass;
+ // Oval track, laid out as a broad stadium circuit
+ const rx=76, rz=49, road=18, segments=240;
+ function ellipseTube(name,radX,radZ,width,y,material){
+   const outer=[],inner=[];
+   for(let i=0;i<=segments;i++){const a=i/segments*Math.PI*2;outer.push(new B.Vector3((radX+width/2)*Math.cos(a),y,(radZ+width/2)*Math.sin(a)));inner.push(new B.Vector3((radX-width/2)*Math.cos(a),y,(radZ-width/2)*Math.sin(a)));}
+   const paths=[outer,inner];const mesh=B.MeshBuilder.CreateRibbon(name,{pathArray:paths,closeArray:true,closePath:true,sideOrientation:B.Mesh.DOUBLESIDE},scene);mesh.material=material;return mesh;
+ }
+ ellipseTube("raceway",rx,rz,road,.025,asphalt);
+ ellipseTube("outer cyan edge",rx+road/2-.5,rz+road/2-.5,.45,.045,cyan);
+ ellipseTube("inner cyan edge",rx-road/2+.5,rz-road/2+.5,.45,.046,cyan);
+ // kerbs in short alternating blocks
+ for(let i=0;i<segments;i+=4){const a=i/segments*Math.PI*2;for(const sign of [-1,1]){const rrX=rx+sign*(road/2-.9),rrZ=rz+sign*(road/2-.9);const x=rrX*Math.cos(a),z=rrZ*Math.sin(a);const c=box("track curb",2.6,.10,1.05,x,.075,z,(i%8===0?curbRed:white));c.rotation.y=-a;}}
+ // outer and inner safety barriers using repeated segments
+ for(let i=0;i<segments;i+=3){const a=i/segments*Math.PI*2;for(const sign of [-1,1]){const rX=rx+sign*(road/2+2.4),rZ=rz+sign*(road/2+2.4);const x=rX*Math.cos(a),z=rZ*Math.sin(a);const b=box("safety barrier",2.6,1.05,.65,x,.55,z,barrier);b.rotation.y=-a;const stripe=box("barrier stripe",2.61,.18,.67,x,.58,z,dark);stripe.rotation.y=-a;}}
+ // Start/finish gantry on the south-western straight-ish portion
+ const gateAngle=-Math.PI/2;
+ const gx=rx*Math.cos(gateAngle),gz=rz*Math.sin(gateAngle);
+ const postMat=mat("gantry metal","#182b3b",.4,.55);
+ box("finish gantry top",road+9,.5,.65,gx,8.2,gz,postMat);
+ for(const x of [-road/2-4.5,road/2+4.5])box("gantry pillar",.55,8,.65,gx+x,4,gz,postMat);
+ // checkerboard stripe
+ for(let i=0;i<12;i++){const s=box("finish checker",road/12,.08,2,gx-road/2+(i+.5)*road/12,.09,gz,i%2?dark:white);}
+ // Trees / light towers around outside
+ const trunk=mat("tree trunk","#594632"), foliage=mat("tree foliage","#255a3c"), lampMat=mat("lamp metal","#263543",.3,.6), glow=mat("lamp glow","#fff2c4",.25);
+ for(let i=0;i<42;i++){const a=i/42*Math.PI*2;const x=(rx+road/2+14+Math.sin(i*4)*3)*Math.cos(a),z=(rz+road/2+14+Math.cos(i*2)*3)*Math.sin(a);
+   cyl("tree trunk",1.0,4,x,2,z,trunk);const crown=B.MeshBuilder.CreateSphere("tree crown",{diameter:5.5,segments:8},scene);crown.position.set(x,5,z);crown.material=foliage;}
+ for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const x=(rx+road/2+7)*Math.cos(a),z=(rz+road/2+7)*Math.sin(a);cyl("light pole",.3,11,x,5.5,z,lampMat);box("light head",2,.22,.7,x,11,z,glow);}
+ // Distant grandstand and branded boards
+ const stand=mat("grandstand","#39495c"), seat=mat("seats","#d64c4c");
+ for(let i=0;i<8;i++){const x=-28+i*8;const z=-rz-road/2-12;const s=box("grandstand",7,3,5,x,1.5,z,stand);box("stand roof",7,.35,5.5,x,3.25,z,postMat);for(let row=0;row<3;row++)box("seat row",6,.22,.45,x,.7+row*.65,z-1+row*.8,seat);}
+ car=makeCar();
+ camera=new B.FollowCamera("chase camera",new B.Vector3(0,7,-12),scene);camera.lockedTarget=car;camera.radius=13;camera.heightOffset=4.1;camera.rotationOffset=180;camera.cameraAcceleration=.045;camera.maxCameraSpeed=10;camera.lowerRadiusLimit=8;camera.upperRadiusLimit=19;camera.attachControl(canvas,true);
+ scene.activeCamera=camera;
+ // Small floating cyan guide markers on the racing line
+ for(let i=0;i<48;i++){const a=i/48*Math.PI*2;const marker=B.MeshBuilder.CreateCylinder("racing guide",{diameter:.28,height:.05,tessellation:8},scene);marker.position.set(rx*Math.cos(a),.08,rz*Math.sin(a));marker.material=cyan;}
+ return scene;
+}
+buildScene();
+window.addEventListener("resize",()=>engine.resize());
+function say(s){toast.textContent=s;toast.style.opacity=1;clearTimeout(say.timer);say.timer=setTimeout(()=>toast.style.opacity=0,2100);}
+function resetCar(){speed=0;heading=Math.PI/2;car.position.set(0,.04,-49);car.rotation.y=heading;elapsed=0;lap=1;lastAngle=null;lapCooldown=0;lapEl.textContent="1/3";timeEl.textContent="00:00";say("Car reset. Ready to race.");}
+function setKey(k,v){keys[k]=v;}
+window.addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();if(k==="w"||k==="arrowup")setKey("gas",true);if(k==="s"||k==="arrowdown")setKey("brake",true);if(k==="a"||k==="arrowleft")setKey("left",true);if(k==="d"||k==="arrowright")setKey("right",true);if(k===" ")setKey("hand",true);if(k==="r")resetCar();});
+window.addEventListener("keyup",e=>{const k=e.key.toLowerCase();if(k==="w"||k==="arrowup")setKey("gas",false);if(k==="s"||k==="arrowdown")setKey("brake",false);if(k==="a"||k==="arrowleft")setKey("left",false);if(k==="d"||k==="arrowright")setKey("right",false);if(k===" ")setKey("hand",false);});
+document.querySelectorAll("[data-key]").forEach(btn=>{const k=btn.dataset.key;const down=e=>{e.preventDefault();btn.classList.add("active");setKey(k==="left"?"left":k==="right"?"right":k==="gas"?"gas":"brake",true);};const up=e=>{e.preventDefault();btn.classList.remove("active");setKey(k==="left"?"left":k==="right"?"right":k==="gas"?"gas":"brake",false);};btn.addEventListener("pointerdown",down);["pointerup","pointercancel","pointerleave"].forEach(ev=>btn.addEventListener(ev,up));});
+document.getElementById("startBtn").onclick=()=>{running=true;startwrap.style.display="none";canvas.focus();say("Engine started. Find your racing line!");};
+document.getElementById("howBtn").onclick=()=>say("W/↑ accelerate • S/↓ brake • A/D steer • Space handbrake");
+document.getElementById("resetBtn").onclick=resetCar;
+document.getElementById("qualityBtn").onclick=()=>{quality=!quality;engine.setHardwareScalingLevel(quality?1:1.5);document.getElementById("qualityBtn").textContent="QUALITY: "+(quality?"HIGH":"PERFORMANCE");say(quality?"Higher visual quality enabled":"Performance mode enabled");};
+scene.onBeforeRenderObservable.add(()=>{
+ const dt=Math.min(engine.getDeltaTime()/1000,.05);if(!running)return;
+ elapsed+=dt;lapCooldown=Math.max(0,lapCooldown-dt);
+ const maxSpeed=quality?53:49;
+ if(keys.gas)speed+=23*dt;else speed-=8*dt;
+ if(keys.brake)speed-=speed>0?36*dt:15*dt;
+ if(keys.hand)speed*=Math.max(0,1-2.8*dt);
+ speed=B.Scalar.Clamp(speed,-12,maxSpeed);
+ const steer=(keys.left?1:0)-(keys.right?1:0);
+ const steerFactor=Math.min(1,Math.abs(speed)/8);
+ heading+=steer*dt*(1.2+Math.abs(speed)*.025)*steerFactor*(speed<0?-1:1)*(keys.hand?1.45:1);
+ car.rotation.y=heading;
+ const forward=new B.Vector3(Math.sin(heading),0,Math.cos(heading));
+ car.position.addInPlace(forward.scale(speed*dt));
+ // visual wheel rotation and front wheel steering
+ for(const w of wheels){w.pivot.rotation.x+=speed*dt/0.38;if(w.front)w.pivot.rotation.y=steer*.28;}
+ // Track boundary slowdown and soft recovery
+ const nx=car.position.x/76,nz=car.position.z/49, radial=Math.sqrt(nx*nx+nz*nz);
+ const nearTrack=radial>.72&&radial<1.32;
+ if(!nearTrack){speed*=Math.max(0,1-1.2*dt);offTrack+=dt;if(offTrack>3){say("Off track — steer back onto the circuit.");offTrack=0;}}
+ // Lap checkpoint: cross the start line from the track, not merely spawn
+ const angle=Math.atan2(car.position.z/49,car.position.x/76);
+ if(lastAngle!==null&&lapCooldown===0){let diff=angle-lastAngle;if(diff>Math.PI)diff-=2*Math.PI;if(diff< -Math.PI)diff+=2*Math.PI;
+   // crossing the top point while moving around the oval
+   if(lastAngle>2.65&&angle< -2.65&&Math.abs(radial-1)<.38&&speed>5){lap++;lapCooldown=3;lapEl.textContent=Math.min(lap,3)+"/3";if(lap>3){running=false;startwrap.style.display="flex";startwrap.querySelector(".eyebrow").textContent="RACE COMPLETE";startwrap.querySelector("h1").innerHTML='FINISH<br><span style="color:var(--cyan)">LINE.</span>';startwrap.querySelector("p").textContent="Nice driving. Your first CHILLY Racing prototype is complete. Reset or start again to test another run.";document.getElementById("startBtn").textContent="RACE AGAIN";say("Race complete!");}}
+ }
+ lastAngle=angle;
+ speedEl.textContent=String(Math.round(Math.abs(speed)*3.6)).padStart(3,"0");
+ const mm=String(Math.floor(elapsed/60)).padStart(2,"0"),ss=String(Math.floor(elapsed%60)).padStart(2,"0");timeEl.textContent=mm+":"+ss;
+});
+engine.runRenderLoop(()=>scene.render());
+loading.style.display="none";
+})();
+</script>
+</body>
+</html>
